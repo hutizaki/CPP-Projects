@@ -3,6 +3,15 @@
 # Script to create a new SFML C++ project
 # Usage: ./create_sfml_project.sh
 
+# Detect OS early for proper command usage
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" || "$OSTYPE" == "cygwin" ]]; then
+    OS="Windows"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    OS="macOS"
+else
+    OS="Linux"
+fi
+
 echo "=========================================="
 echo "  SFML Project Generator"
 echo "=========================================="
@@ -22,14 +31,33 @@ if [ -d "$folder_name" ]; then
     exit 1
 fi
 
+# Helper functions for case conversion (macOS bash 3.2 compatible)
+to_lower() {
+    if [ "$OS" = "macOS" ]; then
+        # macOS: bash 3.2, use tr
+        echo "$1" | tr '[:upper:]' '[:lower:]'
+    else
+        # Windows/Linux: bash 4+, use parameter expansion (faster)
+        echo "${1,,}"
+    fi
+}
 
-# Convert to camelCase for .cpp filename (pure bash, no external commands)
+to_upper() {
+    if [ "$OS" = "macOS" ]; then
+        # macOS: bash 3.2, use tr
+        echo "$1" | tr '[:lower:]' '[:upper:]'
+    else
+        # Windows/Linux: bash 4+, use parameter expansion (faster)
+        echo "${1^^}"
+    fi
+}
+
+# Convert to camelCase for .cpp filename
 # Split by spaces, lowercase first word, capitalize first letter of subsequent words
 project_name=""
 first_word=true
 for word in $folder_name; do
-    # Convert to lowercase using bash parameter expansion
-    word_lower="${word,,}"
+    word_lower=$(to_lower "$word")
     
     if [ "$first_word" = true ]; then
         project_name="$word_lower"
@@ -37,7 +65,7 @@ for word in $folder_name; do
     else
         # Capitalize first letter
         first_char="${word_lower:0:1}"
-        first_char="${first_char^^}"
+        first_char=$(to_upper "$first_char")
         rest="${word_lower:1}"
         project_name="${project_name}${first_char}${rest}"
     fi
@@ -151,10 +179,12 @@ set_property(TARGET PROJECT_NAME PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE
 EOF
 
 # Replace PROJECT_NAME placeholders in CMakeLists.txt
-# Cross-platform sed: macOS requires extension, Linux/Windows doesn't
-if [[ "$OSTYPE" == "darwin"* ]]; then
+# OS-specific sed syntax
+if [ "$OS" = "macOS" ]; then
+    # macOS: sed requires empty string after -i
     sed -i '' "s/PROJECT_NAME/$project_name/g" CMakeLists.txt
 else
+    # Windows/Linux: sed doesn't require extension
     sed -i "s/PROJECT_NAME/$project_name/g" CMakeLists.txt
 fi
 
@@ -262,17 +292,21 @@ EOF
 # Copy runApp.sh from an existing project template (use Random Walk as reference)
 if [ -f "$workspace_root/Random Walk/runApp.sh" ]; then
     cp "$workspace_root/Random Walk/runApp.sh" runApp.sh
+    
     # Replace the project name in the script
-    # Cross-platform sed: macOS requires extension, Linux/Windows doesn't
-    if [[ "$OSTYPE" == "darwin"* ]]; then
+    # OS-specific sed syntax
+    if [ "$OS" = "macOS" ]; then
+        # macOS: sed requires backup extension, we delete it after
         sed -i.bak "s/PROJECT_NAME=\"randomWalk\"/PROJECT_NAME=\"$project_name\"/g" runApp.sh
         rm -f runApp.sh.bak
     else
+        # Windows/Linux: sed doesn't require extension
         sed -i "s/PROJECT_NAME=\"randomWalk\"/PROJECT_NAME=\"$project_name\"/g" runApp.sh
     fi
     chmod +x runApp.sh
 else
     echo "⚠️  Warning: Could not find template runApp.sh. Creating basic version."
+    
     # Fallback: create minimal runApp.sh
     cat > runApp.sh << 'EOF'
 #!/bin/bash
@@ -281,10 +315,14 @@ PROJECT_NAME="PROJECT_NAME_PLACEHOLDER"
 echo "🔨 Building and running $PROJECT_NAME..."
 cmake -B build && cmake --build build --config Release && (./build/Release/${PROJECT_NAME}.exe || ./build/${PROJECT_NAME}.exe || ./build/${PROJECT_NAME})
 EOF
-    if [[ "$OSTYPE" == "darwin"* ]]; then
+    
+    # OS-specific sed syntax
+    if [ "$OS" = "macOS" ]; then
+        # macOS: sed requires backup extension
         sed -i.bak "s/PROJECT_NAME_PLACEHOLDER/$project_name/g" runApp.sh
         rm -f runApp.sh.bak
     else
+        # Windows/Linux: sed doesn't require extension
         sed -i "s/PROJECT_NAME_PLACEHOLDER/$project_name/g" runApp.sh
     fi
     chmod +x runApp.sh
@@ -301,40 +339,35 @@ echo ""
 echo "Building project..."
 echo ""
 
-# Detect OS for proper CMake generator
-if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" || "$OSTYPE" == "cygwin" ]]; then
-    OS="Windows"
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-    OS="macOS"
-else
-    OS="Linux"
-fi
-
 # Create build directory and build the project
 mkdir -p build
 cd build
 
-# Convert SFML_DIR_PATH to Windows format if needed
+# Convert SFML_DIR_PATH to Windows format if needed (Git Bash uses /c/ paths)
 SFML_CMAKE_DIR="$SFML_DIR_PATH"
 if [[ "$SFML_CMAKE_DIR" == /c/* ]]; then
+    # Windows Git Bash: /c/Users/... → C:/Users/...
     SFML_CMAKE_DIR="C:/${SFML_CMAKE_DIR#/c/}"
 elif [[ "$SFML_CMAKE_DIR" == /mnt/c/* ]]; then
+    # WSL: /mnt/c/Users/... → C:/Users/...
     SFML_CMAKE_DIR="C:/${SFML_CMAKE_DIR#/mnt/c/}"
 fi
 
-# Get CMAKE_PREFIX_PATH from SFML_DIR
+# Get CMAKE_PREFIX_PATH from SFML_DIR (for audio dependencies like Ogg, Vorbis)
 CMAKE_PREFIX_PATH_VAL="${SFML_CMAKE_DIR%/lib/cmake/SFML}"
 
-# Configure and build with verbose output on error
-# Use cmake --build for cross-platform compatibility (works with all generators)
+# Configure with appropriate generator based on OS
 if [ "$OS" = "Windows" ]; then
+    # Windows: Use Visual Studio generator (with fallback to default)
     CMAKE_RESULT=$(cmake .. -G "Visual Studio 17 2022" -DSFML_DIR="$SFML_CMAKE_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH_VAL" 2>&1 || cmake .. -DSFML_DIR="$SFML_CMAKE_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH_VAL" 2>&1)
 else
+    # macOS/Linux: Use default generator (Unix Makefiles)
     CMAKE_RESULT=$(cmake .. -DSFML_DIR="$SFML_CMAKE_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH_VAL" 2>&1)
 fi
 
 echo "$CMAKE_RESULT"
 
+# Build the project (works on all platforms with appropriate generator)
 if [ $? -eq 0 ] && cmake --build . 2>&1; then
     # Copy compile_commands.json to project root for IDE support
     if [ -f compile_commands.json ]; then
