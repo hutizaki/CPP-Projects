@@ -30,8 +30,18 @@ elif [[ "$SFML_DIR" == /mnt/c/* ]]; then
     CMAKE_PREFIX_PATH="C:/${CMAKE_PREFIX_PATH#/mnt/c/}"
 fi
 
+# Detect OS
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" || "$OSTYPE" == "cygwin" ]]; then
+    OS="Windows"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    OS="macOS"
+else
+    OS="Linux"
+fi
+
 echo "Using SFML from: $SFML_DIR"
 echo "CMAKE_PREFIX_PATH: $CMAKE_PREFIX_PATH"
+echo "OS: $OS"
 echo ""
 
 # Find all directories with CMakeLists.txt (except _sfml)
@@ -69,10 +79,20 @@ for project in "${PROJECTS[@]}"; do
     # Configure if needed (use -B to create build directory automatically)
     if [ ! -f "build/CMakeCache.txt" ]; then
         echo "Configuring..."
-        if [ -n "$SFML_DIR" ]; then
-            CONFIG_OUTPUT=$(cmake -B build -G "Visual Studio 17 2022" -DSFML_DIR="$SFML_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" 2>&1 || cmake -B build -DSFML_DIR="$SFML_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" 2>&1)
+        if [ "$OS" = "Windows" ]; then
+            # Windows: try Visual Studio generator
+            if [ -n "$SFML_DIR" ]; then
+                CONFIG_OUTPUT=$(cmake -B build -G "Visual Studio 17 2022" -DSFML_DIR="$SFML_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" 2>&1 || cmake -B build -DSFML_DIR="$SFML_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" 2>&1)
+            else
+                CONFIG_OUTPUT=$(cmake -B build -G "Visual Studio 17 2022" 2>&1 || cmake -B build 2>&1)
+            fi
         else
-            CONFIG_OUTPUT=$(cmake -B build -G "Visual Studio 17 2022" 2>&1 || cmake -B build 2>&1)
+            # macOS/Linux: use default generator
+            if [ -n "$SFML_DIR" ]; then
+                CONFIG_OUTPUT=$(cmake -B build -DSFML_DIR="$SFML_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" 2>&1)
+            else
+                CONFIG_OUTPUT=$(cmake -B build 2>&1)
+            fi
         fi
         
         if [ $? -ne 0 ]; then

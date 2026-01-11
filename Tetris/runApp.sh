@@ -10,6 +10,15 @@ cd "$SCRIPT_DIR"
 # Get project name
 PROJECT_NAME="tetris"
 
+# Detect OS
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" || "$OSTYPE" == "cygwin" ]]; then
+    OS="Windows"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    OS="macOS"
+else
+    OS="Linux"
+fi
+
 # Check if build directory exists, if not configure
 if [ ! -f "build/CMakeCache.txt" ]; then
     echo "🔧 First-time setup: Configuring CMake..."
@@ -33,10 +42,20 @@ if [ ! -f "build/CMakeCache.txt" ]; then
     fi
     
     # Configure with CMake (use -B to create build directory automatically)
-    if [ -n "$SFML_DIR" ]; then
-        cmake -B build -G "Visual Studio 17 2022" -DSFML_DIR="$SFML_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" || cmake -B build -DSFML_DIR="$SFML_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH"
+    if [ "$OS" = "Windows" ]; then
+        # Windows: try Visual Studio generator
+        if [ -n "$SFML_DIR" ]; then
+            cmake -B build -G "Visual Studio 17 2022" -DSFML_DIR="$SFML_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" || cmake -B build -DSFML_DIR="$SFML_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH"
+        else
+            cmake -B build -G "Visual Studio 17 2022" || cmake -B build
+        fi
     else
-        cmake -B build -G "Visual Studio 17 2022" || cmake -B build
+        # macOS/Linux: use default generator
+        if [ -n "$SFML_DIR" ]; then
+            cmake -B build -DSFML_DIR="$SFML_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH"
+        else
+            cmake -B build
+        fi
     fi
     
     if [ $? -ne 0 ]; then
