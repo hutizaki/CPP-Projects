@@ -4,9 +4,10 @@ cmake-build-*/
 */build/
 */cmake-build-*/
 
-# SFML build artifacts
+# SFML build artifacts (platform-specific, must be rebuilt on each machine)
 _sfml/build/
 _sfml/install/
+_sfml/SFML_DIR.txt
 
 # Compiled binaries
 *.exe

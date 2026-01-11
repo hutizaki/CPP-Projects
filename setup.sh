@@ -186,27 +186,44 @@ else
         cd build
         
         # Configure
-        if cmake .. > /dev/null 2>&1; then
-            # Build
-            if [[ "$OS" == "Windows" ]]; then
-                if cmake --build . --config Release > /dev/null 2>&1; then
-                    echo "  ✓ $project built successfully"
-                    ((SUCCESS_COUNT++))
-                else
-                    echo "  ❌ $project build failed"
-                    ((FAIL_COUNT++))
-                fi
+        echo "  Configuring..."
+        if [[ "$OS" == "Windows" ]]; then
+            # On Windows, try to use Ninja if available, otherwise let CMake choose
+            if command -v ninja >/dev/null 2>&1; then
+                CMAKE_OUTPUT=$(cmake .. -G Ninja 2>&1)
             else
-                if cmake --build . -j$CORES > /dev/null 2>&1; then
-                    echo "  ✓ $project built successfully"
-                    ((SUCCESS_COUNT++))
-                else
-                    echo "  ❌ $project build failed"
-                    ((FAIL_COUNT++))
-                fi
+                CMAKE_OUTPUT=$(cmake .. 2>&1)
+            fi
+        else
+            CMAKE_OUTPUT=$(cmake .. 2>&1)
+        fi
+        
+        if [ $? -eq 0 ]; then
+            # Build
+            echo "  Compiling..."
+            if [[ "$OS" == "Windows" ]]; then
+                BUILD_OUTPUT=$(cmake --build . --config Release 2>&1)
+            else
+                BUILD_OUTPUT=$(cmake --build . -j$CORES 2>&1)
+            fi
+            
+            if [ $? -eq 0 ]; then
+                echo "  ✓ $project built successfully"
+                ((SUCCESS_COUNT++))
+            else
+                echo "  ❌ $project build failed"
+                echo ""
+                echo "Build output:"
+                echo "$BUILD_OUTPUT"
+                echo ""
+                ((FAIL_COUNT++))
             fi
         else
             echo "  ❌ $project configuration failed"
+            echo ""
+            echo "CMake output:"
+            echo "$CMAKE_OUTPUT"
+            echo ""
             ((FAIL_COUNT++))
         fi
         

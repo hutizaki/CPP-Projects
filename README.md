@@ -94,10 +94,22 @@ CPP Projects/
 ## How It Works
 
 - **Workspace-level SFML**: SFML is built once at `_sfml/` and shared by all projects
+- **Platform-specific builds**: SFML is compiled on each machine (Windows/macOS/Linux)
+  - `_sfml/CMakeLists.txt` downloads SFML 3.0.2 from GitHub
+  - `setup.sh` builds and installs it to `_sfml/install/`
+  - Each project links to the local SFML installation
 - **Cross-platform scripts**: `runApp.sh` automatically detects your build system:
   - Visual Studio generators (Windows) → uses `cmake --build . --config Release`
   - Unix Makefiles → uses `cmake --build` or `make`
 - **Path handling**: CMakeLists.txt files handle Windows backslashes and Unix forward slashes automatically
+
+### Why SFML Isn't in Git
+
+SFML binaries are **platform-specific** and **large** (~100MB compiled). Instead:
+- ✅ Git tracks `_sfml/CMakeLists.txt` (the build recipe)
+- ✅ `setup.sh` builds SFML locally on first run
+- ✅ Works the same on Windows, macOS, and Linux
+- ✅ Just like `npm install` rebuilds `node_modules/` on each machine
 
 ## Manual Setup (Alternative)
 
