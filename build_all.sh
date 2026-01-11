@@ -70,13 +70,17 @@ for project in "${PROJECTS[@]}"; do
     if [ ! -f "build/CMakeCache.txt" ]; then
         echo "Configuring..."
         if [ -n "$SFML_DIR" ]; then
-            cmake -B build -G "Visual Studio 17 2022" -DSFML_DIR="$SFML_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" > /dev/null 2>&1 || cmake -B build -DSFML_DIR="$SFML_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" > /dev/null 2>&1
+            CONFIG_OUTPUT=$(cmake -B build -G "Visual Studio 17 2022" -DSFML_DIR="$SFML_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" 2>&1 || cmake -B build -DSFML_DIR="$SFML_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" 2>&1)
         else
-            cmake -B build -G "Visual Studio 17 2022" > /dev/null 2>&1 || cmake -B build > /dev/null 2>&1
+            CONFIG_OUTPUT=$(cmake -B build -G "Visual Studio 17 2022" 2>&1 || cmake -B build 2>&1)
         fi
         
         if [ $? -ne 0 ]; then
             echo "❌ Configuration failed for $project"
+            echo ""
+            echo "Error output:"
+            echo "$CONFIG_OUTPUT"
+            echo ""
             FAIL_COUNT=$((FAIL_COUNT + 1))
             FAILED_PROJECTS+=("$project (configure)")
             cd "$SCRIPT_DIR"
@@ -86,13 +90,17 @@ for project in "${PROJECTS[@]}"; do
     
     # Build
     echo "Building..."
-    cmake --build build --config Release > /dev/null 2>&1
+    BUILD_OUTPUT=$(cmake --build build --config Release 2>&1)
     
     if [ $? -eq 0 ]; then
         echo "✅ $project built successfully"
         SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
     else
         echo "❌ Build failed for $project"
+        echo ""
+        echo "Error output:"
+        echo "$BUILD_OUTPUT" | grep -i "error" || echo "$BUILD_OUTPUT"
+        echo ""
         FAIL_COUNT=$((FAIL_COUNT + 1))
         FAILED_PROJECTS+=("$project (build)")
     fi
