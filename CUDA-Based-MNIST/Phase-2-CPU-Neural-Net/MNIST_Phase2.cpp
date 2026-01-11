@@ -1,5 +1,5 @@
-#include <../bryan-library/matrixMath.h>
-#include <../bryan-library/machineLearning.h>
+#include "../bryan-library/matrixMath.h"
+#include "../bryan-library/machineLearning.h"
 #include <cstdint>
 #include <iostream>
 #include <fstream>

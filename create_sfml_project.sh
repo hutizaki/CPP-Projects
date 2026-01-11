@@ -405,6 +405,13 @@ if [ $? -eq 0 ] && cmake --build . 2>&1; then
     echo "  cd $folder_name"
     echo "  ./runApp.sh"
     echo ""
+    
+    # If sourced (not executed), cd into the project automatically
+    if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+        echo "✓ Automatically entering project directory..."
+        cd "$folder_name" || exit 1
+    fi
+    echo ""
 else
     cd "$workspace_root"
     echo ""
