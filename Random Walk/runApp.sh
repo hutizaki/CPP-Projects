@@ -3,7 +3,43 @@
 # Just run: ./runApp.sh
 # Works on Windows (Git Bash/WSL), macOS, and Linux
 
-cd "$(dirname "$0")"
+# Get script directory (portable way)
+SCRIPT_DIR="$( cd -- "$( pwd )" && pwd )"
+cd "$SCRIPT_DIR"
+
+# Get project name from directory
+PROJECT_NAME="randomWalk"
+
+# Check if build directory exists, if not configure
+if [ ! -f "build/CMakeCache.txt" ]; then
+    echo "🔧 First-time setup: Configuring CMake..."
+    
+    # Try to find SFML_DIR from repo
+    SFML_DIR=""
+    if [ -f "../_sfml/SFML_DIR.txt" ]; then
+        SFML_DIR=$(head -n 1 "../_sfml/SFML_DIR.txt" 2>/dev/null)
+    elif [ -f "../../_sfml/SFML_DIR.txt" ]; then
+        SFML_DIR=$(head -n 1 "../../_sfml/SFML_DIR.txt" 2>/dev/null)
+    fi
+    
+    # Convert Unix path to Windows path if needed
+    if [[ "$SFML_DIR" == /c/* ]] || [[ "$SFML_DIR" == /mnt/c/* ]]; then
+        SFML_DIR=$(echo "$SFML_DIR" | sed 's|^/c/|C:/|' | sed 's|^/mnt/c/|C:/|')
+    fi
+    
+    # Configure with CMake (use -B to create build directory automatically)
+    if [ -n "$SFML_DIR" ]; then
+        cmake -B build -G "Visual Studio 17 2022" -DSFML_DIR="$SFML_DIR" || cmake -B build -DSFML_DIR="$SFML_DIR"
+    else
+        cmake -B build -G "Visual Studio 17 2022" || cmake -B build
+    fi
+    
+    if [ $? -ne 0 ]; then
+        echo "❌ CMake configuration failed!"
+        echo "Make sure you ran ./setup.sh first"
+        exit 1
+    fi
+fi
 
 # Rebuild if source files changed
 echo "🔨 Building project..."
@@ -83,7 +119,7 @@ elif [ -f "build/randomWalk" ]; then
 fi
 
 if [ "$FOUND" = false ]; then
-    echo "Error: Executable not found!" >&2
+    echo "❌ Error: Executable not found!" >&2
     echo "Searched in:" >&2
     echo "  - build/$EXE_PATH" >&2
     echo "  - build/Release/randomWalk.exe" >&2
@@ -91,7 +127,6 @@ if [ "$FOUND" = false ]; then
     echo "  - build/randomWalk.exe" >&2
     echo "  - build/randomWalk" >&2
     echo "" >&2
-    echo "Build directory contents:" >&2
-    ls -la build/ >&2 || dir build\ >&2
+    echo "💡 Try deleting the build/ folder and run ./runApp.sh again" >&2
     exit 1
 fi

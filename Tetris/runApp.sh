@@ -8,7 +8,7 @@ SCRIPT_DIR="$( cd -- "$( pwd )" && pwd )"
 cd "$SCRIPT_DIR"
 
 # Get project name
-PROJECT_NAME="codingInterviewDataAnnotation"
+PROJECT_NAME="tetris"
 
 # Check if build directory exists, if not configure
 if [ ! -f "build/CMakeCache.txt" ]; then
@@ -16,20 +16,22 @@ if [ ! -f "build/CMakeCache.txt" ]; then
     
     # Try to find SFML_DIR from repo
     SFML_DIR=""
+    CMAKE_PREFIX_PATH=""
     if [ -f "../_sfml/SFML_DIR.txt" ]; then
-        SFML_DIR=$(head -n 1 "../_sfml/SFML_DIR.txt" 2>/dev/null)
-    elif [ -f "../../_sfml/SFML_DIR.txt" ]; then
-        SFML_DIR=$(head -n 1 "../../_sfml/SFML_DIR.txt" 2>/dev/null)
+        SFML_DIR=$(head -n 1 "../_sfml/SFML_DIR.txt" 2>/dev/null || cat "../_sfml/SFML_DIR.txt" 2>/dev/null | sed -n '1p')
+        # Get the install directory for CMAKE_PREFIX_PATH
+        CMAKE_PREFIX_PATH="${SFML_DIR%/lib/cmake/SFML}"
     fi
     
     # Convert Unix path to Windows path if needed
     if [[ "$SFML_DIR" == /c/* ]] || [[ "$SFML_DIR" == /mnt/c/* ]]; then
         SFML_DIR=$(echo "$SFML_DIR" | sed 's|^/c/|C:/|' | sed 's|^/mnt/c/|C:/|')
+        CMAKE_PREFIX_PATH=$(echo "$CMAKE_PREFIX_PATH" | sed 's|^/c/|C:/|' | sed 's|^/mnt/c/|C:/|')
     fi
     
     # Configure with CMake (use -B to create build directory automatically)
     if [ -n "$SFML_DIR" ]; then
-        cmake -B build -G "Visual Studio 17 2022" -DSFML_DIR="$SFML_DIR" || cmake -B build -DSFML_DIR="$SFML_DIR"
+        cmake -B build -G "Visual Studio 17 2022" -DSFML_DIR="$SFML_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" || cmake -B build -DSFML_DIR="$SFML_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH"
     else
         cmake -B build -G "Visual Studio 17 2022" || cmake -B build
     fi

@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <chrono>
 #include <random>
+#include <cstdint>
 
 using namespace std;
 using namespace sf;
@@ -126,9 +127,9 @@ static sf::Color HSLtoRGB(float h, float s, float l) {
     b = hue2rgb(p, q, h - 1.f / 3.f);
   }
 
-  return sf::Color(static_cast<uint>(r * 255.f),
-                   static_cast<uint>(g * 255.f),
-                   static_cast<uint>(b * 255.f));
+  return sf::Color(static_cast<std::uint8_t>(r * 255.f),
+                   static_cast<std::uint8_t>(g * 255.f),
+                   static_cast<std::uint8_t>(b * 255.f));
 }
 
 // Build a "random-ish" HSL color using ONLY dist(engine) (0..3).

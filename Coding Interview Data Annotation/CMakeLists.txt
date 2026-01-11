@@ -31,9 +31,14 @@ set(SFML_STATIC_LIBRARIES ON CACHE BOOL "Use SFML static libraries" FORCE)
 # Find SFML package
 find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System)
 
-# Find libcurl using pkg-config (works on macOS/Linux)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(CURL REQUIRED libcurl)
+# Find libcurl - try native CMake find first (Windows), fallback to pkg-config (Linux/macOS)
+find_package(CURL)
+if(NOT CURL_FOUND)
+    find_package(PkgConfig)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(CURL libcurl)
+    endif()
+endif()
 
 add_executable(codingInterviewDataAnnotation codingInterviewDataAnnotation.cpp)
 
@@ -51,20 +56,20 @@ target_link_libraries(codingInterviewDataAnnotation PRIVATE
     SFML::System
 )
 
-# Link against libcurl
-target_link_libraries(codingInterviewDataAnnotation PRIVATE 
-    ${CURL_LIBRARIES}
-)
-
-# Add curl include directories
-target_include_directories(codingInterviewDataAnnotation PRIVATE 
-    ${CURL_INCLUDE_DIRS}
-)
-
-# Add curl compile flags
-target_compile_options(codingInterviewDataAnnotation PRIVATE 
-    ${CURL_CFLAGS_OTHER}
-)
+# Link against libcurl if found
+if(CURL_FOUND)
+    if(TARGET CURL::libcurl)
+        # Modern CMake target
+        target_link_libraries(codingInterviewDataAnnotation PRIVATE CURL::libcurl)
+    else()
+        # Legacy variables from pkg-config
+        target_link_libraries(codingInterviewDataAnnotation PRIVATE ${CURL_LIBRARIES})
+        target_include_directories(codingInterviewDataAnnotation PRIVATE ${CURL_INCLUDE_DIRS})
+        target_compile_options(codingInterviewDataAnnotation PRIVATE ${CURL_CFLAGS_OTHER})
+    endif()
+else()
+    message(WARNING "libcurl not found - some features may not work")
+endif()
 
 # Set working directory to project root so your relative asset paths work
 set_property(TARGET codingInterviewDataAnnotation PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
