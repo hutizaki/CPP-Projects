@@ -141,9 +141,9 @@ fi
 
 cd "$workspace_root"
 
-# Step 2: Build all projects
+# Step 2: Info about running projects
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "Step 2: Building all projects"
+echo "Step 2: Setup Complete!"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
@@ -157,7 +157,7 @@ for dir in */; do
 done
 
 if [ ${#PROJECTS[@]} -eq 0 ]; then
-    echo "⚠️  No projects found to build."
+    echo "⚠️  No projects found."
     echo "   Create a project using: ./create_sfml_project.sh"
     echo ""
 else
@@ -166,67 +166,13 @@ else
         echo "  - $project"
     done
     echo ""
-    
-    SUCCESS_COUNT=0
-    FAIL_COUNT=0
-    
+    echo "To build all projects at once:"
+    echo "  ./build_all.sh"
+    echo ""
+    echo "To build and run individual projects:"
     for project in "${PROJECTS[@]}"; do
-        echo "Building: $project"
-        cd "$workspace_root/$project"
-        
-        # Configure (use -B to create build directory automatically)
-        echo "  Configuring..."
-        if [[ "$OS" == "Windows" ]]; then
-            # On Windows, try to use Ninja if available, otherwise let CMake choose
-            if command -v ninja >/dev/null 2>&1; then
-                CMAKE_OUTPUT=$(cmake -B build -G Ninja 2>&1)
-            else
-                CMAKE_OUTPUT=$(cmake -B build 2>&1)
-            fi
-        else
-            CMAKE_OUTPUT=$(cmake -B build 2>&1)
-        fi
-        
-        if [ $? -eq 0 ]; then
-            # Build
-            echo "  Compiling..."
-            if [[ "$OS" == "Windows" ]]; then
-                BUILD_OUTPUT=$(cmake --build build --config Release 2>&1)
-            else
-                BUILD_OUTPUT=$(cmake --build build -j$CORES 2>&1)
-            fi
-            
-            if [ $? -eq 0 ]; then
-                echo "  ✓ $project built successfully"
-                ((SUCCESS_COUNT++))
-            else
-                echo "  ❌ $project build failed"
-                echo ""
-                echo "Build output:"
-                echo "$BUILD_OUTPUT"
-                echo ""
-                ((FAIL_COUNT++))
-            fi
-        else
-            echo "  ❌ $project configuration failed"
-            echo ""
-            echo "CMake output:"
-            echo "$CMAKE_OUTPUT"
-            echo ""
-            ((FAIL_COUNT++))
-        fi
-        
-        cd "$workspace_root"
-        echo ""
+        echo "  cd \"$project\" && ./runApp.sh"
     done
-    
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "Build Summary:"
-    echo "  ✓ Successful: $SUCCESS_COUNT"
-    if [ $FAIL_COUNT -gt 0 ]; then
-        echo "  ❌ Failed: $FAIL_COUNT"
-    fi
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
 fi
 
@@ -234,8 +180,9 @@ echo "=========================================="
 echo "  Setup Complete!"
 echo "=========================================="
 echo ""
-echo "You can now:"
-echo "  - Run any project: cd \"Project Name\" && ./runApp.sh"
-echo "  - Create new projects: ./create_sfml_project.sh"
+echo "SFML is ready! Next steps:"
+echo "  - Build/run any project: cd \"Project Name\" && ./runApp.sh"
+echo "  - Build all projects: ./build_all.sh"
+echo "  - Create new project: ./create_sfml_project.sh"
 echo ""
 
