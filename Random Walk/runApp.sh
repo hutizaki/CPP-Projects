@@ -84,12 +84,12 @@ if [ "$IS_VS_GENERATOR" = true ]; then
     # Visual Studio generator - use cmake --build with config
     cmake --build . --config Release > /dev/null 2>&1
     # Check multiple possible locations
-    if [ -f "Release/randomWalk.exe" ]; then
-        EXE_PATH="Release/randomWalk.exe"
-    elif [ -f "Debug/randomWalk.exe" ]; then
-        EXE_PATH="Debug/randomWalk.exe"
-    elif [ -f "randomWalk.exe" ]; then
-        EXE_PATH="randomWalk.exe"
+    if [ -f "Release/${PROJECT_NAME}.exe" ]; then
+        EXE_PATH="Release/${PROJECT_NAME}.exe"
+    elif [ -f "Debug/${PROJECT_NAME}.exe" ]; then
+        EXE_PATH="Debug/${PROJECT_NAME}.exe"
+    elif [ -f "${PROJECT_NAME}.exe" ]; then
+        EXE_PATH="${PROJECT_NAME}.exe"
     fi
 else
     # Unix Makefiles or other generators
@@ -107,17 +107,17 @@ else
         cmake --build . > /dev/null 2>&1
     fi
     # Check for .exe extension (Windows) or no extension (Unix)
-    if [ -f "randomWalk.exe" ]; then
-        EXE_PATH="randomWalk.exe"
-    elif [ -f "randomWalk" ]; then
-        EXE_PATH="randomWalk"
+    if [ -f "${PROJECT_NAME}.exe" ]; then
+        EXE_PATH="${PROJECT_NAME}.exe"
+    elif [ -f "${PROJECT_NAME}" ]; then
+        EXE_PATH="${PROJECT_NAME}"
     fi
 fi
 
 cd ..
 
 # Run the executable - try multiple locations
-echo "🚀 Running randomWalk..."
+echo "🚀 Running ${PROJECT_NAME}..."
 FOUND=false
 
 # Try the detected path first
@@ -125,17 +125,17 @@ if [ -n "$EXE_PATH" ] && [ -f "build/$EXE_PATH" ]; then
     ./build/$EXE_PATH
     FOUND=true
 # Try common Windows locations
-elif [ -f "build/Release/randomWalk.exe" ]; then
-    ./build/Release/randomWalk.exe
+elif [ -f "build/Release/${PROJECT_NAME}.exe" ]; then
+    ./build/Release/${PROJECT_NAME}.exe
     FOUND=true
-elif [ -f "build/Debug/randomWalk.exe" ]; then
-    ./build/Debug/randomWalk.exe
+elif [ -f "build/Debug/${PROJECT_NAME}.exe" ]; then
+    ./build/Debug/${PROJECT_NAME}.exe
     FOUND=true
-elif [ -f "build/randomWalk.exe" ]; then
-    ./build/randomWalk.exe
+elif [ -f "build/${PROJECT_NAME}.exe" ]; then
+    ./build/${PROJECT_NAME}.exe
     FOUND=true
-elif [ -f "build/randomWalk" ]; then
-    ./build/randomWalk
+elif [ -f "build/${PROJECT_NAME}" ]; then
+    ./build/${PROJECT_NAME}
     FOUND=true
 fi
 
@@ -143,10 +143,10 @@ if [ "$FOUND" = false ]; then
     echo "❌ Error: Executable not found!" >&2
     echo "Searched in:" >&2
     echo "  - build/$EXE_PATH" >&2
-    echo "  - build/Release/randomWalk.exe" >&2
-    echo "  - build/Debug/randomWalk.exe" >&2
-    echo "  - build/randomWalk.exe" >&2
-    echo "  - build/randomWalk" >&2
+    echo "  - build/Release/${PROJECT_NAME}.exe" >&2
+    echo "  - build/Debug/${PROJECT_NAME}.exe" >&2
+    echo "  - build/${PROJECT_NAME}.exe" >&2
+    echo "  - build/${PROJECT_NAME}" >&2
     echo "" >&2
     echo "💡 Try deleting the build/ folder and run ./runApp.sh again" >&2
     exit 1
