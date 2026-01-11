@@ -58,7 +58,17 @@ The `runApp.sh` script automatically:
 
 ## Requirements
 
-### Windows
+### Windows (Fresh PC? Read This First!)
+
+**🚀 Brand new Windows PC with nothing installed?**
+
+See **[WINDOWS_QUICKSTART.md](WINDOWS_QUICKSTART.md)** for automatic installation!
+
+Just download the repo, right-click `WINDOWS_INSTALL.bat`, select "Run as Administrator", and you're done!
+
+---
+
+**Already have tools installed?** You need:
 - **CMake** (3.20 or newer) - [Download](https://cmake.org/download/)
 - **C++ Compiler:**
   - Visual Studio 2019 or newer (with C++ workload), OR
