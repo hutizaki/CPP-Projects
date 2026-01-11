@@ -17,10 +17,11 @@ if [ ! -f "_sfml/SFML_DIR.txt" ]; then
     exit 1
 fi
 
-SFML_DIR=$(head -n 1 "_sfml/SFML_DIR.txt" 2>/dev/null || cat "_sfml/SFML_DIR.txt" 2>/dev/null)
+# Read SFML_DIR using bash builtin (always available)
+read -r SFML_DIR < "_sfml/SFML_DIR.txt"
 # Get the install directory for CMAKE_PREFIX_PATH
 CMAKE_PREFIX_PATH="${SFML_DIR%/lib/cmake/SFML}"
-# Convert Unix path to Windows path if needed (pure bash, no sed)
+# Convert Unix path to Windows path if needed (pure bash, no external commands)
 if [[ "$SFML_DIR" == /c/* ]]; then
     SFML_DIR="C:/${SFML_DIR#/c/}"
     CMAKE_PREFIX_PATH="C:/${CMAKE_PREFIX_PATH#/c/}"

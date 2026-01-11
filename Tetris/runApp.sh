@@ -14,16 +14,16 @@ PROJECT_NAME="tetris"
 if [ ! -f "build/CMakeCache.txt" ]; then
     echo "🔧 First-time setup: Configuring CMake..."
     
-    # Try to find SFML_DIR from repo
+    # Try to find SFML_DIR from repo (use read builtin, it's always available)
     SFML_DIR=""
     CMAKE_PREFIX_PATH=""
     if [ -f "../_sfml/SFML_DIR.txt" ]; then
-        SFML_DIR=$(head -n 1 "../_sfml/SFML_DIR.txt" 2>/dev/null || cat "../_sfml/SFML_DIR.txt" 2>/dev/null)
+        read -r SFML_DIR < "../_sfml/SFML_DIR.txt"
         # Get the install directory for CMAKE_PREFIX_PATH
         CMAKE_PREFIX_PATH="${SFML_DIR%/lib/cmake/SFML}"
     fi
     
-    # Convert Unix path to Windows path if needed (pure bash, no sed)
+    # Convert Unix path to Windows path if needed (pure bash, no external commands)
     if [[ "$SFML_DIR" == /c/* ]]; then
         SFML_DIR="C:/${SFML_DIR#/c/}"
         CMAKE_PREFIX_PATH="C:/${CMAKE_PREFIX_PATH#/c/}"
