@@ -23,22 +23,25 @@ if [ -d "$folder_name" ]; then
 fi
 
 
-# Convert to camelCase for .cpp filename
+# Convert to camelCase for .cpp filename (pure bash, no external commands)
 # Split by spaces, lowercase first word, capitalize first letter of subsequent words
-project_name=$(echo "$folder_name" | awk '{
-    for(i=1; i<=NF; i++) {
-        word = tolower($i)
-        if(i == 1) {
-            result = word
-        } else {
-            # Capitalize first letter of subsequent words
-            first = substr(word, 1, 1)
-            rest = substr(word, 2)
-            result = result toupper(first) rest
-        }
-    }
-    print result
-}')
+project_name=""
+first_word=true
+for word in $folder_name; do
+    # Convert to lowercase using bash parameter expansion
+    word_lower="${word,,}"
+    
+    if [ "$first_word" = true ]; then
+        project_name="$word_lower"
+        first_word=false
+    else
+        # Capitalize first letter
+        first_char="${word_lower:0:1}"
+        first_char="${first_char^^}"
+        rest="${word_lower:1}"
+        project_name="${project_name}${first_char}${rest}"
+    fi
+done
 
 echo ""
 echo "Creating project: $folder_name"
@@ -67,7 +70,8 @@ fi
 
 # Check if SFML_DIR.txt exists (saved from manual build)
 if [ -f "$workspace_root/_sfml/SFML_DIR.txt" ]; then
-    SFML_DIR_PATH=$(cat "$workspace_root/_sfml/SFML_DIR.txt")
+    # Use read builtin instead of cat
+    read -r SFML_DIR_PATH < "$workspace_root/_sfml/SFML_DIR.txt"
     if [ -d "$SFML_DIR_PATH" ] && [ -f "$SFML_DIR_PATH/SFMLConfig.cmake" ]; then
         echo "✓ Found SFML at workspace root: $SFML_DIR_PATH"
         echo ""
