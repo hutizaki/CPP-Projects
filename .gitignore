@@ -35,6 +35,10 @@ Makefile
 *~
 .DS_Store
 
+# clangd config (contains machine-specific absolute paths)
+.clangd
+*/.clangd
+
 # Compile commands (can be regenerated)
 compile_commands.json
 

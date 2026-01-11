@@ -121,6 +121,18 @@ SFML binaries are **platform-specific** and **large** (~100MB compiled). Instead
 - ✅ Works the same on Windows, macOS, and Linux
 - ✅ Just like `npm install` rebuilds `node_modules/` on each machine
 
+### Why `.clangd` Files Aren't in Git
+
+`.clangd` config files contain **machine-specific absolute paths** to SFML headers:
+- macOS: `/Users/yourname/git/CPP-Projects/_sfml/install/include`
+- Windows: `C:/Users/yourname/git/CPP-Projects/_sfml/install/include`
+
+These paths are different on every machine, so:
+- ✅ `.clangd` files are ignored by git
+- ✅ `setup.sh` generates them automatically for your machine
+- ✅ `create_sfml_project.sh` generates them for new projects
+- ✅ Manual generation: `./generate_clangd_configs.sh`
+
 ## Manual Setup (Alternative)
 
 If you prefer to build manually instead of using `setup.sh`:

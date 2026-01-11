@@ -180,6 +180,15 @@ echo "=========================================="
 echo "  Setup Complete!"
 echo "=========================================="
 echo ""
+
+# Generate .clangd configs for IntelliSense
+echo "Generating clangd configs for IntelliSense..."
+if [ -f "generate_clangd_configs.sh" ]; then
+    ./generate_clangd_configs.sh > /dev/null 2>&1
+    echo "✓ clangd configs generated for all projects"
+    echo ""
+fi
+
 echo "SFML is ready! Next steps:"
 echo "  - Build/run any project: cd \"Project Name\" && ./runApp.sh"
 echo "  - Build all projects: ./build_all.sh"
