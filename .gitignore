@@ -1,0 +1,46 @@
+# Build directories
+build/
+cmake-build-*/
+*/build/
+*/cmake-build-*/
+
+# SFML build artifacts
+_sfml/build/
+_sfml/install/
+
+# Compiled binaries
+*.exe
+*.out
+*.app
+*.dylib
+*.so
+*.dll
+*.a
+*.lib
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Compile commands (can be regenerated)
+compile_commands.json
+
+# Object files
+*.o
+*.obj
+
+# Logs
+*.log
+

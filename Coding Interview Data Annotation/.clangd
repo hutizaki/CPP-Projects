@@ -1,0 +1,17 @@
+CompileFlags:
+  Add: [-std=c++17]
+  
+Diagnostics:
+  UnusedIncludes: None
+  MissingIncludes: None
+
+Completion:
+  AllScopes: true
+  
+Index:
+  Background: Build
+
+InlayHints:
+  Enabled: true
+  ParameterNames: true
+  DeducedTypes: true
