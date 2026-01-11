@@ -251,23 +251,116 @@ cat > .vscode/settings.json << 'EOF'
 EOF
 
 # Create runApp.sh script for easy execution (auto-rebuilds and runs)
-cat > runApp.sh << EOF
+cat > runApp.sh << 'RUNAPP_EOF'
 #!/bin/bash
 # Auto-rebuild and run your SFML project
 # Just run: ./runApp.sh
+# Works on Windows (Git Bash/WSL), macOS, and Linux
 
-cd "\$(dirname "\$0")"
+cd "$(dirname "$0")"
+
+PROJECT_NAME="PROJECT_NAME_PLACEHOLDER"
 
 # Rebuild if source files changed
 echo "🔨 Building project..."
 cd build
-make -j\$(sysctl -n hw.ncpu 2>/dev/null || echo 4) > /dev/null 2>&1
+
+EXE_PATH=""
+IS_VS_GENERATOR=false
+
+# Detect build system
+if [ -f "CMakeCache.txt" ]; then
+    # Check if using Visual Studio generator (Windows) - more robust detection
+    if grep -q "CMAKE_GENERATOR:INTERNAL=Visual Studio" CMakeCache.txt 2>/dev/null || \
+       grep -E "CMAKE_GENERATOR:INTERNAL=.*Visual Studio" CMakeCache.txt 2>/dev/null || \
+       [ -d "Release" ] || [ -d "Debug" ]; then
+        IS_VS_GENERATOR=true
+    fi
+fi
+
+# Build the project
+if [ "$IS_VS_GENERATOR" = true ]; then
+    # Visual Studio generator - use cmake --build with config
+    cmake --build . --config Release > /dev/null 2>&1
+    # Check multiple possible locations
+    if [ -f "Release/${PROJECT_NAME}.exe" ]; then
+        EXE_PATH="Release/${PROJECT_NAME}.exe"
+    elif [ -f "Debug/${PROJECT_NAME}.exe" ]; then
+        EXE_PATH="Debug/${PROJECT_NAME}.exe"
+    elif [ -f "${PROJECT_NAME}.exe" ]; then
+        EXE_PATH="${PROJECT_NAME}.exe"
+    fi
+else
+    # Unix Makefiles or other generators
+    if command -v make >/dev/null 2>&1; then
+        # Try to detect number of CPU cores
+        if [ "$(uname)" = "Darwin" ]; then
+            CORES=$(sysctl -n hw.ncpu 2>/dev/null || echo 4)
+        elif [ "$(uname)" = "Linux" ]; then
+            CORES=$(nproc 2>/dev/null || echo 4)
+        else
+            CORES=$NUMBER_OF_PROCESSORS
+        fi
+        cmake --build . -j$CORES > /dev/null 2>&1 || make -j$CORES > /dev/null 2>&1
+    else
+        cmake --build . > /dev/null 2>&1
+    fi
+    # Check for .exe extension (Windows) or no extension (Unix)
+    if [ -f "${PROJECT_NAME}.exe" ]; then
+        EXE_PATH="${PROJECT_NAME}.exe"
+    elif [ -f "${PROJECT_NAME}" ]; then
+        EXE_PATH="${PROJECT_NAME}"
+    fi
+fi
+
 cd ..
 
-# Run the executable
-echo "🚀 Running $project_name..."
-./build/$project_name
-EOF
+# Run the executable - try multiple locations
+echo "🚀 Running ${PROJECT_NAME}..."
+FOUND=false
+
+# Try the detected path first
+if [ -n "$EXE_PATH" ] && [ -f "build/$EXE_PATH" ]; then
+    ./build/$EXE_PATH
+    FOUND=true
+# Try common Windows locations
+elif [ -f "build/Release/${PROJECT_NAME}.exe" ]; then
+    ./build/Release/${PROJECT_NAME}.exe
+    FOUND=true
+elif [ -f "build/Debug/${PROJECT_NAME}.exe" ]; then
+    ./build/Debug/${PROJECT_NAME}.exe
+    FOUND=true
+elif [ -f "build/${PROJECT_NAME}.exe" ]; then
+    ./build/${PROJECT_NAME}.exe
+    FOUND=true
+elif [ -f "build/${PROJECT_NAME}" ]; then
+    ./build/${PROJECT_NAME}
+    FOUND=true
+fi
+
+if [ "$FOUND" = false ]; then
+    echo "Error: Executable not found!" >&2
+    echo "Searched in:" >&2
+    echo "  - build/$EXE_PATH" >&2
+    echo "  - build/Release/${PROJECT_NAME}.exe" >&2
+    echo "  - build/Debug/${PROJECT_NAME}.exe" >&2
+    echo "  - build/${PROJECT_NAME}.exe" >&2
+    echo "  - build/${PROJECT_NAME}" >&2
+    echo "" >&2
+    echo "Build directory contents:" >&2
+    ls -la build/ >&2 || dir build\ >&2
+    exit 1
+fi
+RUNAPP_EOF
+
+# Replace PROJECT_NAME_PLACEHOLDER with actual project name
+# Cross-platform sed: macOS requires extension, Linux doesn't
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i.bak "s/PROJECT_NAME_PLACEHOLDER/$project_name/g" runApp.sh
+    rm -f runApp.sh.bak
+else
+    sed -i "s/PROJECT_NAME_PLACEHOLDER/$project_name/g" runApp.sh
+fi
 chmod +x runApp.sh
 
 echo "✓ Project directory created: $folder_name/"
