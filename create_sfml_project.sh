@@ -244,6 +244,19 @@ SFML_INCLUDE_PATH="${SFML_DIR_PATH%/lib/cmake/SFML}/include"
 # Convert to forward slashes (works on all platforms)
 SFML_INCLUDE_PATH="${SFML_INCLUDE_PATH//\\//}"
 
+# Convert Git Bash paths to Windows paths for clangd
+# /c/Users/... → C:/Users/...
+# /mnt/c/Users/... → C:/Users/... (WSL)
+if [[ "$SFML_INCLUDE_PATH" == /c/* ]]; then
+    SFML_INCLUDE_PATH="C:/${SFML_INCLUDE_PATH#/c/}"
+elif [[ "$SFML_INCLUDE_PATH" == /mnt/c/* ]]; then
+    SFML_INCLUDE_PATH="C:/${SFML_INCLUDE_PATH#/mnt/c/}"
+elif [[ "$SFML_INCLUDE_PATH" == /[a-z]/* ]]; then
+    # Handle other drive letters: /d/... → D:/...
+    drive="${SFML_INCLUDE_PATH:1:1}"
+    SFML_INCLUDE_PATH="${drive^^}:/${SFML_INCLUDE_PATH#/[a-z]/}"
+fi
+
 cat > .clangd << EOF
 CompileFlags:
   Add: 
