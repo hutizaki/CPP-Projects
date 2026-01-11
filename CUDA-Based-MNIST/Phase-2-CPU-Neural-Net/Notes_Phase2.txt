@@ -1,0 +1,8 @@
+The file contents are stored in binary. When you access a byte, you actually grab groups of 8 (bits).
+You have largest bytes first, with 4 bytes to represent 32 bits.
+Each pixel is stored in those bytes, from 0 - 255.
+    0   -> black
+    255 -> white
+You have to convert that 0 -> 255 scale to represent a float 0.0 -> 1.0
+
+batching the weight updates means that you calc the gradiant loss for each input, then sum all amounts and divide by that amount.

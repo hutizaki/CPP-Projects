@@ -1,0 +1,9 @@
+Final weights:
+w1 = -8.56192
+w2 = -8.55462
+b = 12.9946
+Final predictions:
+Input: (0, 0) Predicted: 0.999998 (1) Actual: 1 ✓
+Input: (0, 1) Predicted: 0.988341 (1) Actual: 1 ✓
+Input: (1, 0) Predicted: 0.988257 (1) Actual: 1 ✓
+Input: (1, 1) Predicted: 0.0159541 (0) Actual: 0 ✓
