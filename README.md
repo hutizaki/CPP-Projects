@@ -1,4 +1,4 @@
-# C++ Projects Workspace
+# CPP Projects Workspace
 
 A cross-platform workspace for SFML C++ projects. Works on **Windows**, **macOS**, and **Linux**.
 
@@ -11,39 +11,20 @@ git clone https://github.com/hutizaki/C-Projects.git
 cd C-Projects
 ```
 
-### 2. Build SFML (One-time setup)
+### 2. Run Setup (Like `npm install`)
 
-You need to build SFML once at the workspace root. This will be shared by all projects.
-
-#### On Windows (Git Bash or PowerShell):
+**This is all you need!** The setup script builds SFML and all projects automatically:
 
 ```bash
-cd _sfml
-mkdir build
-cd build
-cmake .. -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=../install
-cmake --build . --config Release
-cmake --install . --config Release
-cd ..
-echo "$(cd install/lib/cmake/SFML && pwd -W)" > SFML_DIR.txt
-cd ..
+./setup.sh
 ```
 
-**Note for Windows:** If using PowerShell, use `(Resolve-Path install\lib\cmake\SFML).Path` instead of the `pwd -W` command.
+This will:
+- ✅ Build SFML (shared across all projects) - takes 5-10 minutes first time
+- ✅ Build all existing projects automatically
+- ✅ Set up everything needed to run projects
 
-#### On macOS/Linux:
-
-```bash
-cd _sfml
-mkdir build
-cd build
-cmake .. -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=../install
-cmake --build . -j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
-cmake --install .
-cd ..
-echo "$(cd install/lib/cmake/SFML && pwd)" > SFML_DIR.txt
-cd ..
-```
+**Works on Windows (Git Bash/WSL), macOS, and Linux!**
 
 ### 3. Create a New Project
 
@@ -96,7 +77,8 @@ The `runApp.sh` script automatically:
 ## Project Structure
 
 ```
-C++ Projects/
+CPP Projects/
+├── setup.sh            # Setup script (builds SFML + all projects)
 ├── _sfml/              # SFML build (shared across all projects)
 │   ├── build/          # SFML build directory
 │   └── install/        # SFML installation
@@ -117,10 +99,47 @@ C++ Projects/
   - Unix Makefiles → uses `cmake --build` or `make`
 - **Path handling**: CMakeLists.txt files handle Windows backslashes and Unix forward slashes automatically
 
+## Manual Setup (Alternative)
+
+If you prefer to build manually instead of using `setup.sh`:
+
+### Build SFML
+
+#### On Windows (Git Bash or PowerShell):
+
+```bash
+cd _sfml
+mkdir build
+cd build
+cmake .. -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=../install
+cmake --build . --config Release
+cmake --install . --config Release
+cd ..
+echo "$(cd install/lib/cmake/SFML && pwd -W)" > SFML_DIR.txt
+cd ..
+```
+
+**Note for Windows:** If using PowerShell, use `(Resolve-Path install\lib\cmake\SFML).Path` instead of the `pwd -W` command.
+
+#### On macOS/Linux:
+
+```bash
+cd _sfml
+mkdir build
+cd build
+cmake .. -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=../install
+cmake --build . -j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+cmake --install .
+cd ..
+echo "$(cd install/lib/cmake/SFML && pwd)" > SFML_DIR.txt
+cd ..
+```
+
 ## Troubleshooting
 
 ### "SFML not found" error
-- Make sure you've built and installed SFML in the `_sfml/` directory
+- Run `./setup.sh` to build SFML automatically
+- Or manually build SFML following the instructions above
 - Check that `_sfml/SFML_DIR.txt` exists and contains the correct path
 
 ### Build errors on Windows
