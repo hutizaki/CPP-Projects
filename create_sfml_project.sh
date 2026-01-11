@@ -239,9 +239,16 @@ _sfml/
 EOF
 
 # Create .clangd config for better IntelliSense
-cat > .clangd << 'EOF'
+# Convert SFML path to forward slashes for cross-platform compatibility
+SFML_INCLUDE_PATH="${SFML_DIR_PATH%/lib/cmake/SFML}/include"
+# Convert to forward slashes (works on all platforms)
+SFML_INCLUDE_PATH="${SFML_INCLUDE_PATH//\\//}"
+
+cat > .clangd << EOF
 CompileFlags:
-  Add: [-std=c++17]
+  Add: 
+    - -std=c++17
+    - -I${SFML_INCLUDE_PATH}
   
 Diagnostics:
   UnusedIncludes: None

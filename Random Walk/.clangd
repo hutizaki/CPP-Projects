@@ -1,5 +1,7 @@
 CompileFlags:
-  Add: [-std=c++17]
+  Add: 
+    - -std=c++17
+    - -I/Users/bryan/git/CPP Projects/_sfml/install/include
   
 Diagnostics:
   UnusedIncludes: None
