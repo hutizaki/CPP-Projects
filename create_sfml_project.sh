@@ -147,7 +147,12 @@ set_property(TARGET PROJECT_NAME PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE
 EOF
 
 # Replace PROJECT_NAME placeholders in CMakeLists.txt
-sed -i '' "s/PROJECT_NAME/$project_name/g" CMakeLists.txt
+# Cross-platform sed: macOS requires extension, Linux/Windows doesn't
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' "s/PROJECT_NAME/$project_name/g" CMakeLists.txt
+else
+    sed -i "s/PROJECT_NAME/$project_name/g" CMakeLists.txt
+fi
 
 # Create the main .cpp file with SFML basics (SFML 3 API - following official tutorial)
 cat > "${project_name}.cpp" << 'EOF'
@@ -292,13 +297,41 @@ echo ""
 echo "Building project..."
 echo ""
 
+# Detect OS for proper CMake generator
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" || "$OSTYPE" == "cygwin" ]]; then
+    OS="Windows"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    OS="macOS"
+else
+    OS="Linux"
+fi
+
 # Create build directory and build the project
 mkdir -p build
 cd build
 
+# Convert SFML_DIR_PATH to Windows format if needed
+SFML_CMAKE_DIR="$SFML_DIR_PATH"
+if [[ "$SFML_CMAKE_DIR" == /c/* ]]; then
+    SFML_CMAKE_DIR="C:/${SFML_CMAKE_DIR#/c/}"
+elif [[ "$SFML_CMAKE_DIR" == /mnt/c/* ]]; then
+    SFML_CMAKE_DIR="C:/${SFML_CMAKE_DIR#/mnt/c/}"
+fi
+
+# Get CMAKE_PREFIX_PATH from SFML_DIR
+CMAKE_PREFIX_PATH_VAL="${SFML_CMAKE_DIR%/lib/cmake/SFML}"
+
 # Configure and build with verbose output on error
 # Use cmake --build for cross-platform compatibility (works with all generators)
-if cmake .. 2>&1 && cmake --build . 2>&1; then
+if [ "$OS" = "Windows" ]; then
+    CMAKE_RESULT=$(cmake .. -G "Visual Studio 17 2022" -DSFML_DIR="$SFML_CMAKE_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH_VAL" 2>&1 || cmake .. -DSFML_DIR="$SFML_CMAKE_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH_VAL" 2>&1)
+else
+    CMAKE_RESULT=$(cmake .. -DSFML_DIR="$SFML_CMAKE_DIR" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH_VAL" 2>&1)
+fi
+
+echo "$CMAKE_RESULT"
+
+if [ $? -eq 0 ] && cmake --build . 2>&1; then
     # Copy compile_commands.json to project root for IDE support
     if [ -f compile_commands.json ]; then
         cp compile_commands.json ..
