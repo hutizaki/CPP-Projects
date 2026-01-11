@@ -111,10 +111,13 @@ get_filename_component(WORKSPACE_ROOT "${CMAKE_SOURCE_DIR}" DIRECTORY)
 if(EXISTS "${WORKSPACE_ROOT}/_sfml/SFML_DIR.txt")
     file(READ "${WORKSPACE_ROOT}/_sfml/SFML_DIR.txt" SFML_DIR_ABS)
     string(STRIP "${SFML_DIR_ABS}" SFML_DIR_ABS)
+    # Convert Windows paths to CMake format (handles backslashes)
+    file(TO_CMAKE_PATH "${SFML_DIR_ABS}" SFML_DIR_ABS)
     set(SFML_DIR "${SFML_DIR_ABS}" CACHE PATH "Path to SFML install directory")
 else()
     # Fallback: try to find it in the install directory
-    set(SFML_DIR "${WORKSPACE_ROOT}/_sfml/install/lib/cmake/SFML" CACHE PATH "Path to SFML install directory")
+    file(TO_CMAKE_PATH "${WORKSPACE_ROOT}/_sfml/install/lib/cmake/SFML" SFML_DIR_ABS)
+    set(SFML_DIR "${SFML_DIR_ABS}" CACHE PATH "Path to SFML install directory")
 endif()
 
 # Set SFML to use static libraries (since FetchContent builds static by default)
@@ -283,7 +286,8 @@ mkdir -p build
 cd build
 
 # Configure and build with verbose output on error
-if cmake .. 2>&1 && make 2>&1; then
+# Use cmake --build for cross-platform compatibility (works with all generators)
+if cmake .. 2>&1 && cmake --build . 2>&1; then
     # Copy compile_commands.json to project root for IDE support
     if [ -f compile_commands.json ]; then
         cp compile_commands.json ..
