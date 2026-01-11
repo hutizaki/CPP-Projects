@@ -78,16 +78,12 @@ if [ "$BUILD_SFML" = true ]; then
     echo "Building SFML (this may take 5-10 minutes)..."
     echo ""
     
-    # Create build directory
-    mkdir -p build
-    cd build
-    
-    # Configure
+    # Configure (use -S/-B to create build directory automatically)
     echo "Configuring SFML..."
     if [[ "$OS" == "Windows" ]]; then
-        cmake .. -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=../install
+        cmake -S . -B build -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=install
     else
-        cmake .. -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=../install
+        cmake -S . -B build -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=install
     fi
     
     if [ $? -ne 0 ]; then
@@ -98,9 +94,9 @@ if [ "$BUILD_SFML" = true ]; then
     # Build
     echo "Building SFML (using $CORES cores)..."
     if [[ "$OS" == "Windows" ]]; then
-        cmake --build . --config Release -j$CORES
+        cmake --build build --config Release -j$CORES
     else
-        cmake --build . -j$CORES
+        cmake --build build -j$CORES
     fi
     
     if [ $? -ne 0 ]; then
@@ -111,17 +107,15 @@ if [ "$BUILD_SFML" = true ]; then
     # Install
     echo "Installing SFML..."
     if [[ "$OS" == "Windows" ]]; then
-        cmake --install . --config Release
+        cmake --install build --config Release
     else
-        cmake --install .
+        cmake --install build
     fi
     
     if [ $? -ne 0 ]; then
         echo "❌ SFML installation failed!"
         exit 1
     fi
-    
-    cd ..
     
     # Create SFML_DIR.txt
     echo "Creating SFML_DIR.txt..."
@@ -153,15 +147,14 @@ echo "Step 2: Building all projects"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-# Find all project directories (those with CMakeLists.txt)
+# Find all project directories (those with CMakeLists.txt) - Windows compatible
 PROJECTS=()
-while IFS= read -r -d '' file; do
-    project_dir=$(dirname "$file")
-    # Skip _sfml directory
-    if [[ "$project_dir" != "_sfml" ]] && [[ "$project_dir" != "." ]]; then
-        PROJECTS+=("$project_dir")
+for dir in */; do
+    dir="${dir%/}"  # Remove trailing slash
+    if [ "$dir" != "_sfml" ] && [ -f "$dir/CMakeLists.txt" ]; then
+        PROJECTS+=("$dir")
     fi
-done < <(find . -maxdepth 2 -name "CMakeLists.txt" -type f -print0)
+done
 
 if [ ${#PROJECTS[@]} -eq 0 ]; then
     echo "⚠️  No projects found to build."
@@ -181,30 +174,26 @@ else
         echo "Building: $project"
         cd "$workspace_root/$project"
         
-        # Create build directory
-        mkdir -p build
-        cd build
-        
-        # Configure
+        # Configure (use -B to create build directory automatically)
         echo "  Configuring..."
         if [[ "$OS" == "Windows" ]]; then
             # On Windows, try to use Ninja if available, otherwise let CMake choose
             if command -v ninja >/dev/null 2>&1; then
-                CMAKE_OUTPUT=$(cmake .. -G Ninja 2>&1)
+                CMAKE_OUTPUT=$(cmake -B build -G Ninja 2>&1)
             else
-                CMAKE_OUTPUT=$(cmake .. 2>&1)
+                CMAKE_OUTPUT=$(cmake -B build 2>&1)
             fi
         else
-            CMAKE_OUTPUT=$(cmake .. 2>&1)
+            CMAKE_OUTPUT=$(cmake -B build 2>&1)
         fi
         
         if [ $? -eq 0 ]; then
             # Build
             echo "  Compiling..."
             if [[ "$OS" == "Windows" ]]; then
-                BUILD_OUTPUT=$(cmake --build . --config Release 2>&1)
+                BUILD_OUTPUT=$(cmake --build build --config Release 2>&1)
             else
-                BUILD_OUTPUT=$(cmake --build . -j$CORES 2>&1)
+                BUILD_OUTPUT=$(cmake --build build -j$CORES 2>&1)
             fi
             
             if [ $? -eq 0 ]; then

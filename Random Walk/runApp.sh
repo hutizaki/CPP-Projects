@@ -17,14 +17,16 @@ if [ ! -f "build/CMakeCache.txt" ]; then
     # Try to find SFML_DIR from repo
     SFML_DIR=""
     if [ -f "../_sfml/SFML_DIR.txt" ]; then
-        SFML_DIR=$(head -n 1 "../_sfml/SFML_DIR.txt" 2>/dev/null)
+        SFML_DIR=$(head -n 1 "../_sfml/SFML_DIR.txt" 2>/dev/null || cat "../_sfml/SFML_DIR.txt" 2>/dev/null)
     elif [ -f "../../_sfml/SFML_DIR.txt" ]; then
-        SFML_DIR=$(head -n 1 "../../_sfml/SFML_DIR.txt" 2>/dev/null)
+        SFML_DIR=$(head -n 1 "../../_sfml/SFML_DIR.txt" 2>/dev/null || cat "../../_sfml/SFML_DIR.txt" 2>/dev/null)
     fi
     
-    # Convert Unix path to Windows path if needed
-    if [[ "$SFML_DIR" == /c/* ]] || [[ "$SFML_DIR" == /mnt/c/* ]]; then
-        SFML_DIR=$(echo "$SFML_DIR" | sed 's|^/c/|C:/|' | sed 's|^/mnt/c/|C:/|')
+    # Convert Unix path to Windows path if needed (pure bash, no sed)
+    if [[ "$SFML_DIR" == /c/* ]]; then
+        SFML_DIR="C:/${SFML_DIR#/c/}"
+    elif [[ "$SFML_DIR" == /mnt/c/* ]]; then
+        SFML_DIR="C:/${SFML_DIR#/mnt/c/}"
     fi
     
     # Configure with CMake (use -B to create build directory automatically)

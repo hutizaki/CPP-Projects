@@ -18,15 +18,18 @@ if [ ! -f "build/CMakeCache.txt" ]; then
     SFML_DIR=""
     CMAKE_PREFIX_PATH=""
     if [ -f "../_sfml/SFML_DIR.txt" ]; then
-        SFML_DIR=$(head -n 1 "../_sfml/SFML_DIR.txt" 2>/dev/null || cat "../_sfml/SFML_DIR.txt" 2>/dev/null | sed -n '1p')
+        SFML_DIR=$(head -n 1 "../_sfml/SFML_DIR.txt" 2>/dev/null || cat "../_sfml/SFML_DIR.txt" 2>/dev/null)
         # Get the install directory for CMAKE_PREFIX_PATH
         CMAKE_PREFIX_PATH="${SFML_DIR%/lib/cmake/SFML}"
     fi
     
-    # Convert Unix path to Windows path if needed
-    if [[ "$SFML_DIR" == /c/* ]] || [[ "$SFML_DIR" == /mnt/c/* ]]; then
-        SFML_DIR=$(echo "$SFML_DIR" | sed 's|^/c/|C:/|' | sed 's|^/mnt/c/|C:/|')
-        CMAKE_PREFIX_PATH=$(echo "$CMAKE_PREFIX_PATH" | sed 's|^/c/|C:/|' | sed 's|^/mnt/c/|C:/|')
+    # Convert Unix path to Windows path if needed (pure bash, no sed)
+    if [[ "$SFML_DIR" == /c/* ]]; then
+        SFML_DIR="C:/${SFML_DIR#/c/}"
+        CMAKE_PREFIX_PATH="C:/${CMAKE_PREFIX_PATH#/c/}"
+    elif [[ "$SFML_DIR" == /mnt/c/* ]]; then
+        SFML_DIR="C:/${SFML_DIR#/mnt/c/}"
+        CMAKE_PREFIX_PATH="C:/${CMAKE_PREFIX_PATH#/mnt/c/}"
     fi
     
     # Configure with CMake (use -B to create build directory automatically)
