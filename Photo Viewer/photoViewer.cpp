@@ -12,6 +12,10 @@
 using namespace std;
 using namespace sf;
 
+// Type definitions for cross-platform compatibility
+typedef unsigned int uint;
+typedef unsigned char u_char;
+
 uint WIDTH;
 uint HEIGHT;
 
@@ -85,8 +89,7 @@ int main()
             u_char b = readBytesLE(photo, 1);
             u_char g = readBytesLE(photo, 1);
             u_char r = readBytesLE(photo, 1);
-
-            cout << "Coord: (" << x << " ," << y << ")\n";
+            
             image.setPixel({x, y}, Color(r, g, b));
         }
     }

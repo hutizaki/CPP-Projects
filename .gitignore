@@ -49,3 +49,6 @@ compile_commands.json
 # Logs
 *.log
 
+# Windows special files
+nul
+
