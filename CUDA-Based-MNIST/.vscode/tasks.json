@@ -1,0 +1,52 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build CUDA Project (WSL)",
+      "type": "shell",
+      "command": "/usr/local/cuda/bin/nvcc",
+      "args": [
+        "${workspaceFolder}/Phase-3-CUDA-Fundamentals/MNIST_Phase3.cu",
+        "-o",
+        "${workspaceFolder}/Phase-3-CUDA-Fundamentals/MNIST_Phase3"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/Phase-3-CUDA-Fundamentals"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build CUDA Project",
+      "type": "shell",
+      "command": "C:\\\\Program Files\\\\NVIDIA GPU Computing Toolkit\\\\CUDA\\\\v12.8\\\\bin\\\\nvcc.exe",
+      "args": [
+        "-ccbin",
+        "C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\VC\\\\Tools\\\\MSVC\\\\14.44.35207\\\\bin\\\\Hostx64\\\\x64",
+        "-I",
+        "C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\VC\\\\Tools\\\\MSVC\\\\14.44.35207\\\\include",
+        "-I",
+        "C:\\\\Program Files (x86)\\\\Windows Kits\\\\10\\\\Include\\\\10.0.26100.0\\\\ucrt",
+        "-I",
+        "C:\\\\Program Files (x86)\\\\Windows Kits\\\\10\\\\Include\\\\10.0.26100.0\\\\shared",
+        "-I",
+        "C:\\\\Program Files (x86)\\\\Windows Kits\\\\10\\\\Include\\\\10.0.26100.0\\\\um",
+        "-I",
+        "C:\\\\Program Files\\\\NVIDIA GPU Computing Toolkit\\\\CUDA\\\\v12.8\\\\include",
+        "-I",
+        "${workspaceFolder}\\Phase-3-CUDA-Fundamentals",
+        "${workspaceFolder}\\Phase-3-CUDA-Fundamentals\\MNIST_Phase3.cu",
+        "-o",
+        "${workspaceFolder}\\Phase-3-CUDA-Fundamentals\\MNIST_Phase3.exe"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

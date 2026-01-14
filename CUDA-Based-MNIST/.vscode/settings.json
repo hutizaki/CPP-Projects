@@ -1,0 +1,42 @@
+{
+    // Remote WSL settings
+    "remote.WSL.fileWatcher.polling": false,
+    
+    // Clangd settings for CUDA (WSL/Linux paths)
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}",
+        "--query-driver=/usr/local/cuda/bin/nvcc",
+        "--header-insertion=never",
+        "-j=12",
+        "--clang-tidy",
+        "--background-index"
+    ],
+    
+    // File associations
+    "files.associations": {
+        "*.cu": "cuda-cpp",
+        "*.cuh": "cuda-cpp",
+        "cuda_runtime.h": "c",
+        "device_launch_parameters.h": "c"
+    },
+    
+    // C++ IntelliSense settings (if Microsoft C/C++ extension is installed)
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/**",
+        "/usr/local/cuda/include",
+        "/usr/local/cuda/include/crt"
+    ],
+    
+    "C_Cpp.default.defines": [
+        "__CUDACC__",
+        "__CUDA_ARCH__"
+    ],
+    
+    "C_Cpp.default.compilerPath": "/usr/local/cuda/bin/nvcc",
+    "C_Cpp.default.intelliSenseMode": "linux-gcc-x64",
+    "C_Cpp.default.cStandard": "c11",
+    "C_Cpp.default.cppStandard": "c++17",
+    
+    // Terminal settings for WSL
+    "terminal.integrated.defaultProfile.linux": "bash"
+}

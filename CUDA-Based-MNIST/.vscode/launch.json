@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Build and Run CUDA",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/Phase-3-CUDA-Fundamentals/MNIST_Phase3.exe",
+      "cwd": "${workspaceFolder}/Phase-3-CUDA-Fundamentals",
+      "preLaunchTask": "Build CUDA Project",
+      "console": "externalTerminal",
+      "stopAtEntry": false
+    }
+  ]
+}

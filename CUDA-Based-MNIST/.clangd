@@ -1,0 +1,27 @@
+CompileFlags:
+  Add:
+    # CUDA include paths (WSL/Linux paths)
+    - "-I/usr/local/cuda/include"
+    - "-I/usr/local/cuda/include/crt"
+    
+    # Tell clangd to treat .cu files as C++
+    - "-x"
+    - "cuda"
+    
+    # CUDA language features
+    - "--cuda-gpu-arch=sm_75"
+    - "--cuda-path=/usr/local/cuda"
+    
+    # Allow CUDA-specific extensions
+    - "-xcuda"
+    - "-std=c++17"
+    
+Diagnostics:
+  # Suppress warnings about CUDA-specific syntax
+  Suppress:
+    - "drv_unknown_argument"
+    - "unknown-cuda-version"
+    - "ignored-attributes"
+
+Index:
+  Background: Build

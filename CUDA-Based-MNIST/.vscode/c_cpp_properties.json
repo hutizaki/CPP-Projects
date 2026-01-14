@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "name": "WSL-CUDA",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/local/cuda/include",
+                "/usr/local/cuda/include/crt",
+                "/usr/local/cuda/include/cuda",
+                "/usr/include",
+                "/usr/include/c++/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "__CUDACC__",
+                "__CUDA_ARCH__=750"
+            ],
+            "compilerPath": "/usr/local/cuda/bin/nvcc",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}

@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "ms-vscode-remote.remote-wsl",
+        "nvidia.nsight-vscode-edition",
+        "llvm-vs-code-extensions.vscode-clangd"
+    ]
+}
