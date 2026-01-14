@@ -48,6 +48,27 @@ string intToHexPadded(int value, int width = 4) {
     return ss.str();
 }
 
+Sprite processBMP(ifstream& file, int offset, Texture& texture) {
+    file.seekg(offset, ios::beg);
+
+    Image image({WIDTH, HEIGHT}, Color::Black);
+
+    for (uint y = HEIGHT - 1; y > 0; y--) {
+        for (uint x = 0; x < WIDTH; x++) {
+            u_char b = readBytesLE(file, 1);
+            u_char g = readBytesLE(file, 1);
+            u_char r = readBytesLE(file, 1);
+            
+            image.setPixel({x, y}, Color(r, g, b));
+        }
+    }
+
+    texture.loadFromImage(image);
+    Sprite sprite(texture);
+
+    return sprite;
+}
+
 int main()
 {
     ifstream photo("sample_640x426.bmp", ios::binary);
@@ -82,20 +103,8 @@ int main()
 
     cout << "Width: " << WIDTH << " Height: " << HEIGHT << " Bits Per Pixel: " << BPP << endl;
 
-    Image image({WIDTH, HEIGHT}, Color::Black);
-
-    for (uint y = HEIGHT - 1; y > 0; y--) {
-        for (uint x = 0; x < WIDTH; x++) {
-            u_char b = readBytesLE(photo, 1);
-            u_char g = readBytesLE(photo, 1);
-            u_char r = readBytesLE(photo, 1);
-            
-            image.setPixel({x, y}, Color(r, g, b));
-        }
-    }
-
-    Texture t(image);
-    Sprite s(t);
+    Texture texture;
+    Sprite sprite = processBMP(photo, imageBeg, texture);
 
     RenderWindow window(VideoMode({WIDTH, HEIGHT}), "BMP Viewer");
 
@@ -106,7 +115,7 @@ int main()
         }
 
       window.clear();
-      window.draw(s);
+      window.draw(sprite);
       window.display();
     }
 
