@@ -42,5 +42,11 @@
     "C_Cpp.default.cppStandard": "c++17",
     
     // Terminal settings for WSL
-    "terminal.integrated.defaultProfile.linux": "bash"
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "terminal.integrated.profiles.linux": {
+        "bash": {
+            "path": "bash",
+            "args": ["-l"]
+        }
+    }
 }
