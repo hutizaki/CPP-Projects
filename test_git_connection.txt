@@ -1,4 +1,0 @@
-This is a test file to verify git is working properly in Cursor IDE with WSL Ubuntu.
-Created on: 2026-01-14
-
-If you can see this file after pulling, then git push/pull is working correctly!
