@@ -2,6 +2,10 @@
     // Remote WSL settings
     "remote.WSL.fileWatcher.polling": false,
     
+    // Git settings
+    "git.path": "/usr/bin/git",
+    "git.enabled": true,
+    
     // Clangd settings for CUDA (WSL/Linux paths)
     "clangd.arguments": [
         "--compile-commands-dir=${workspaceFolder}",
