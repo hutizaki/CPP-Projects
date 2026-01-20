@@ -9,7 +9,7 @@ using namespace sf;
 float WIDTH = 1000;
 float HEIGHT = 700;
 
-int numAgents = 10;
+int numAgents = 1000;
 float SIZE = 2;
 int JUMP = 3;
 

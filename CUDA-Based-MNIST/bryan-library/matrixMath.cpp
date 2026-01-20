@@ -64,8 +64,8 @@ vector<vector<float>> matrixMultiplication(const vector<vector<float>>& A, const
     return answer;
 }
 
-vector<float> matrixVectorMultiplication(const vector<vector<float>> &A,
-                                           const vector<float> &Vector) {
+vector<float> matrixVectorMultiplication(const vector<vector<float>>& A,
+                                           const vector<float>& Vector) {
 
   int Ak = A[0].size();
   int m = A.size();
