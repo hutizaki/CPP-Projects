@@ -2,7 +2,6 @@
 #define MATRIXMATH_H
 
 #include <vector>
-#include <iostream>
 
 using namespace std;
 

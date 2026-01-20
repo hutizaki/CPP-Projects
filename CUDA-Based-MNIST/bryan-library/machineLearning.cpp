@@ -1,5 +1,6 @@
 #include "../bryan-library/matrixMath.h"
 #include <cmath>
+#include <algorithm>
 #include <vector>
 #include <random>
 
