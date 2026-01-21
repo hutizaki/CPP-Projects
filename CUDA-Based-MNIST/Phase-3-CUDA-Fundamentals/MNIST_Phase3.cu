@@ -1,5 +1,7 @@
 #include "../bryan-library/matrixMath.h"
 #include "../bryan-library/machineLearning.h"
+#include "../bryan-library/cudaMachineLearning.h"
+#include "../bryan-library/cudaMatrixMath.h"
 #include <cstdint>
 #include <iostream>
 #include <fstream>
@@ -116,7 +118,7 @@ TrainedWeights runTraining(const vector<vector<float>> &images, const vector<int
                 int idx = batch_start + i;
                 
                 // === FORWARD PASS ===
-                vector<float> hiddenZ = processLayer(w1, b1, images[idx]);
+                vector<float> hiddenZ = cudaML::processLayer(w1, b1, images[idx]);
                 vector<float> hiddenA = relu(hiddenZ);
                 vector<float> outputZ = processLayer(w2, b2, hiddenA);
                 vector<float> y_hat = softmax(outputZ);
@@ -141,7 +143,7 @@ TrainedWeights runTraining(const vector<vector<float>> &images, const vector<int
                 }
                 
                 // Backpropagate to hidden layer
-                vector<float> hiddenError = matrixVectorMultiplication(transpose(w2), outputError);
+                vector<float> hiddenError = cudaMM::matrixVectorMultiplication(transpose(w2), outputError);
                 
                 // Accumulate gradients for W1 and b1
                 for (int j = 0; j < numNeurons; j++) {
