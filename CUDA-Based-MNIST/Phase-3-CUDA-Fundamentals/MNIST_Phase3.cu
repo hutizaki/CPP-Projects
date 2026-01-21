@@ -12,6 +12,12 @@
 #include <iomanip>
 #include <cmath>
 
+// ============================================================================
+// CONFIGURATION: Set to true to enable CPU training for comparison
+// ============================================================================
+const bool usingCPU = true;  // Change to true to run CPU training and compare with GPU
+// ============================================================================
+
 // CUDA error checking macro
 #define CUDA_CHECK(call) \
     do { \
@@ -522,7 +528,7 @@ float compareWeights(const TrainedWeights& w1, const TrainedWeights& w2) {
 }
 
 int main() {
-    // Check CUDA availability
+    // Check CUDA availability (always needed for GPU training)
     int deviceCount = 0;
     cudaError_t err = cudaGetDeviceCount(&deviceCount);
     if (err != cudaSuccess || deviceCount == 0) {
@@ -554,37 +560,58 @@ int main() {
     float learning_rate = 0.1f;
     int batch_size = 32;
     
-    // Generate initial weights once (for fair comparison)
+    TrainedWeights weights_cpu, weights_gpu;
+    chrono::milliseconds duration_cpu, duration_gpu;
+    
+    // Generate initial weights once (for fair comparison if using CPU)
     int inputLength = trainImages[0].size();
-    vector<vector<float>> initial_w1 = generateRandMatrix(numNeurons, inputLength);
-    vector<vector<float>> initial_w2 = generateRandMatrix(10, numNeurons);
-    vector<float> initial_b1 = generateRandVector(numNeurons);
-    vector<float> initial_b2 = generateRandVector(10);
+    vector<vector<float>> initial_w1, initial_w2;
+    vector<float> initial_b1, initial_b2;
     
-    // === CPU TRAINING ===
-    cout << "\n=== CPU TRAINING ===" << endl;
-    auto start_cpu = chrono::high_resolution_clock::now();
-    TrainedWeights weights_cpu = runTrainingCPU(trainImages, trainLabels, numNeurons, epochs, learning_rate, batch_size, "CPU",
-                                                 &initial_w1, &initial_w2, &initial_b1, &initial_b2);
-    auto end_cpu = chrono::high_resolution_clock::now();
-    auto duration_cpu = chrono::duration_cast<chrono::milliseconds>(end_cpu - start_cpu);
+    if (usingCPU) {
+        // Generate initial weights for fair comparison
+        initial_w1 = generateRandMatrix(numNeurons, inputLength);
+        initial_w2 = generateRandMatrix(10, numNeurons);
+        initial_b1 = generateRandVector(numNeurons);
+        initial_b2 = generateRandVector(10);
+        
+        // === CPU TRAINING ===
+        cout << "\n=== CPU TRAINING ===" << endl;
+        auto start_cpu = chrono::high_resolution_clock::now();
+        weights_cpu = runTrainingCPU(trainImages, trainLabels, numNeurons, epochs, learning_rate, batch_size, "CPU",
+                                     &initial_w1, &initial_w2, &initial_b1, &initial_b2);
+        auto end_cpu = chrono::high_resolution_clock::now();
+        duration_cpu = chrono::duration_cast<chrono::milliseconds>(end_cpu - start_cpu);
+    }
     
-    // === GPU TRAINING ===
+    // === GPU TRAINING (always runs) ===
     cout << "\n=== GPU TRAINING ===" << endl;
     auto start_gpu = chrono::high_resolution_clock::now();
-    TrainedWeights weights_gpu = runTrainingGPU(trainImages, trainLabels, numNeurons, epochs, learning_rate, batch_size, "GPU",
-                                                &initial_w1, &initial_w2, &initial_b1, &initial_b2);
+    if (usingCPU) {
+        // Use same initial weights for fair comparison
+        weights_gpu = runTrainingGPU(trainImages, trainLabels, numNeurons, epochs, learning_rate, batch_size, "GPU",
+                                    &initial_w1, &initial_w2, &initial_b1, &initial_b2);
+    } else {
+        // Generate new random weights
+        weights_gpu = runTrainingGPU(trainImages, trainLabels, numNeurons, epochs, learning_rate, batch_size, "GPU");
+    }
     auto end_gpu = chrono::high_resolution_clock::now();
-    auto duration_gpu = chrono::duration_cast<chrono::milliseconds>(end_gpu - start_gpu);
+    duration_gpu = chrono::duration_cast<chrono::milliseconds>(end_gpu - start_gpu);
     
-    // === TIMING COMPARISON ===
-    cout << "\n=== TIMING COMPARISON ===" << endl;
-    cout << "CPU Training Time: " << duration_cpu.count() << " ms (" 
-         << fixed << setprecision(2) << duration_cpu.count() / 1000.0 << " seconds)" << endl;
-    cout << "GPU Training Time: " << duration_gpu.count() << " ms (" 
-         << fixed << setprecision(2) << duration_gpu.count() / 1000.0 << " seconds)" << endl;
-    double speedup = (double)duration_cpu.count() / duration_gpu.count();
-    cout << "Speedup: " << fixed << setprecision(2) << speedup << "x" << endl;
+    // === TIMING ===
+    if (usingCPU) {
+        cout << "\n=== TIMING COMPARISON ===" << endl;
+        cout << "CPU Training Time: " << duration_cpu.count() << " ms (" 
+             << fixed << setprecision(2) << duration_cpu.count() / 1000.0 << " seconds)" << endl;
+        cout << "GPU Training Time: " << duration_gpu.count() << " ms (" 
+             << fixed << setprecision(2) << duration_gpu.count() / 1000.0 << " seconds)" << endl;
+        double speedup = (double)duration_cpu.count() / duration_gpu.count();
+        cout << "Speedup: " << fixed << setprecision(2) << speedup << "x" << endl;
+    } else {
+        cout << "\n=== TRAINING TIME ===" << endl;
+        cout << "GPU Training Time: " << duration_gpu.count() << " ms (" 
+             << fixed << setprecision(2) << duration_gpu.count() / 1000.0 << " seconds)" << endl;
+    }
     cout << endl;
     
     // Load test data
@@ -596,29 +623,40 @@ int main() {
     testLabelFile.close();
     testImageFile.close();
     
-    // === TEST CPU MODEL ===
-    cout << "\n=== TESTING CPU MODEL ===" << endl;
-    float accuracy_cpu = testTraining(testImages, testLabels, weights_cpu);
-    
-    // === TEST GPU MODEL ===
-    cout << "\n=== TESTING GPU MODEL ===" << endl;
-    float accuracy_gpu = testTraining(testImages, testLabels, weights_gpu);
-    
-    // === COMPARE RESULTS ===
-    cout << "\n=== RESULTS COMPARISON ===" << endl;
-    cout << "CPU Accuracy: " << fixed << setprecision(2) << accuracy_cpu << "%" << endl;
-    cout << "GPU Accuracy: " << fixed << setprecision(2) << accuracy_gpu << "%" << endl;
-    cout << "Accuracy Difference: " << fixed << setprecision(2) << abs(accuracy_cpu - accuracy_gpu) << "%" << endl;
-    
-    float avg_weight_diff = compareWeights(weights_cpu, weights_gpu);
-    cout << "Average Weight Difference: " << scientific << setprecision(4) << avg_weight_diff << endl;
-    
-    if (avg_weight_diff < 0.01f && abs(accuracy_cpu - accuracy_gpu) < 1.0f) {
-        cout << "✓ Results match closely - GPU implementation is correct!" << endl;
+    if (usingCPU) {
+        // === TEST CPU MODEL ===
+        cout << "\n=== TESTING CPU MODEL ===" << endl;
+        float accuracy_cpu = testTraining(testImages, testLabels, weights_cpu);
+        
+        // === TEST GPU MODEL ===
+        cout << "\n=== TESTING GPU MODEL ===" << endl;
+        float accuracy_gpu = testTraining(testImages, testLabels, weights_gpu);
+        
+        // === COMPARE RESULTS ===
+        cout << "\n=== RESULTS COMPARISON ===" << endl;
+        cout << "CPU Accuracy: " << fixed << setprecision(2) << accuracy_cpu << "%" << endl;
+        cout << "GPU Accuracy: " << fixed << setprecision(2) << accuracy_gpu << "%" << endl;
+        cout << "Accuracy Difference: " << fixed << setprecision(2) << abs(accuracy_cpu - accuracy_gpu) << "%" << endl;
+        
+        float avg_weight_diff = compareWeights(weights_cpu, weights_gpu);
+        cout << "Average Weight Difference: " << scientific << setprecision(4) << avg_weight_diff << endl;
+        
+        if (avg_weight_diff < 0.01f && abs(accuracy_cpu - accuracy_gpu) < 1.0f) {
+            cout << "✓ Results match closely - GPU implementation is correct!" << endl;
+        } else {
+            cout << "⚠ Warning: Results differ significantly - check implementation" << endl;
+        }
+        cout << endl;
     } else {
-        cout << "⚠ Warning: Results differ significantly - check implementation" << endl;
+        // === TEST GPU MODEL ===
+        cout << "\n=== TESTING GPU MODEL ===" << endl;
+        float accuracy_gpu = testTraining(testImages, testLabels, weights_gpu);
+        
+        cout << "\n=== FINAL RESULTS ===" << endl;
+        cout << "GPU Accuracy: " << fixed << setprecision(2) << accuracy_gpu << "%" << endl;
+        cout << "Training Time: " << duration_gpu.count() / 1000.0 << " seconds" << endl;
+        cout << endl;
     }
-    cout << endl;
     
     // Save trained weights (using GPU version)
     saveWeights("mnist_weights", weights_gpu);
