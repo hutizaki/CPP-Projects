@@ -29,7 +29,7 @@ int readBytesLE(ifstream& file, int byteSize) {
     return x;
 }
 
-vector<int> loadMNISTLabels(ifstream& file) {
+const vector<int> loadMNISTLabels(ifstream& file) {
     int labelMagicNum = 2049;
     int magicNum = readBytesBE(file, 4);
     if (labelMagicNum != magicNum) throw runtime_error("Magic numbers do not match! Incorrect file");
@@ -51,7 +51,7 @@ vector<int> loadMNISTLabels(ifstream& file) {
     return labelArr;
 }
 
-vector<vector<float>> loadMNISTImages(ifstream& file) {
+const vector<vector<float>> loadMNISTImages(ifstream& file) {
     int imageMagicNum = 2051;
     int magicNum = readBytesBE(file, 4);
     if (imageMagicNum != magicNum) throw runtime_error("Magic numbers do not match! Incorrect file");

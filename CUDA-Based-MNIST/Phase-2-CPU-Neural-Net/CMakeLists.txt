@@ -16,6 +16,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../bryan-library)
 add_library(bryan_library
     ../bryan-library/matrixMath.cpp
     ../bryan-library/machineLearning.cpp
+    ../bryan-library/fileParsing.cpp
 )
 
 # Create the executable
