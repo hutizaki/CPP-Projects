@@ -52,3 +52,20 @@ compile_commands.json
 # Windows special files
 nul
 
+
+# Python virtual environment
+venv/
+__pycache__/
+*.pyc
+
+# Large dataset files
+*.tar.gz
+*.tar
+*.zip
+
+# Binary weight files (generated)
+*.bin
+
+# Build directories
+build/
+

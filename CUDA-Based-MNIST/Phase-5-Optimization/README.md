@@ -6,6 +6,8 @@
 
 This phase is open-ended. You'll learn advanced techniques to make your neural network faster, more accurate, and production-ready.
 
+> **Current Implementation:** This phase includes a comprehensive benchmark comparison between our custom Phase 4 CUDA implementation and industry-standard Python ML libraries (PyTorch and TensorFlow). This allows you to validate your implementation against production frameworks and measure performance differences.
+
 ---
 
 ## 🎯 **Goal**
@@ -14,6 +16,79 @@ Take your working GPU neural network and push it further. Learn optimization tec
 
 **Time:** Open-ended (pick what interests you!)  
 **Difficulty:** ⭐⭐⭐⭐⭐
+
+---
+
+## 📊 **Benchmark Comparison (Current Implementation)**
+
+### What's Included
+
+This phase includes a complete benchmarking setup that compares:
+- **PyTorch**: Industry-standard deep learning framework
+- **TensorFlow**: Google's production ML framework  
+- **Phase 4 CUDA**: Your custom GPU-accelerated implementation
+
+### Running the Benchmark
+
+**Prerequisites:**
+- Python 3.10+ installed
+- Virtual environment set up (see setup instructions below)
+- Phase 4 CUDA executable built and available
+
+**Setup:**
+```bash
+cd Phase-5-Optimization
+source venv/bin/activate  # Activate virtual environment
+```
+
+**Run Full Benchmark:**
+```bash
+python benchmark_comparison.py
+```
+
+This will:
+1. Train using PyTorch and measure time/accuracy
+2. Train using TensorFlow and measure time/accuracy
+3. Run Phase 4 CUDA implementation via subprocess and measure time/accuracy
+4. Display comprehensive comparison table
+
+**Run Individual Implementations:**
+```bash
+# PyTorch only
+python pytorch_mnist.py
+
+# TensorFlow only
+python tensorflow_mnist.py
+```
+
+### Expected Output
+
+The benchmark will display:
+- Training time for each implementation (in seconds)
+- Test accuracy for each implementation (in %)
+- Speedup ratios (relative to PyTorch)
+- Accuracy comparison analysis
+
+### Files
+
+- `pytorch_mnist.py` - PyTorch implementation matching Phase 4 architecture
+- `tensorflow_mnist.py` - TensorFlow/Keras implementation matching Phase 4 architecture
+- `benchmark_comparison.py` - Main comparison script
+- `mnist_loader.py` - MNIST data loader (matches C++ format)
+- `requirements.txt` - Python dependencies
+- `MNIST_Phase4.cu` - Reference copy of Phase 4 implementation
+
+### Architecture Matching
+
+All implementations use the same architecture:
+- Input: 784 (flattened 28×28 image)
+- Hidden Layer: 128 neurons, ReLU activation
+- Output Layer: 10 neurons, Softmax activation
+- Training: 10 epochs, learning rate 0.1, batch size 32, SGD optimizer
+
+This ensures fair comparison between implementations.
+
+---
 
 ---
 
